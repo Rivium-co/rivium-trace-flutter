@@ -12,7 +12,8 @@ void main() async {
   // ========================================================================
   await RiviumTrace.initWithZone(
     RiviumTraceConfig(
-      apiKey: 'rv_live_b9c41e8aab1cf206cad72f6a3697c61c5ead350e613daa67',
+      apiKey: 'rv_live_1fb14a9cead2a0e9c5767b145d21883a6765e955e230d054',
+      apiUrl: 'http://192.168.xxx.xxx:3001', //self host ip
       environment: 'development',
       release: '0.1.0',
       debug: true,
