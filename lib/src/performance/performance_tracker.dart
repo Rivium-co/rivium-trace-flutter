@@ -29,6 +29,7 @@ class PerformanceTracker {
   final String _operation;
   final String _operationType;
   final String _apiKey;
+  final String _apiUrl;
   final DateTime _startTime;
   final String? _environment;
   final String? _releaseVersion;
@@ -53,6 +54,7 @@ class PerformanceTracker {
   PerformanceTracker({
     required String operation,
     required String apiKey,
+    String? apiUrl,
     String operationType = 'custom',
     String? environment,
     String? releaseVersion,
@@ -60,6 +62,7 @@ class PerformanceTracker {
   })  : _operation = operation,
         _operationType = operationType,
         _apiKey = apiKey,
+        _apiUrl = apiUrl ?? RiviumTraceConstants.apiUrl,
         _startTime = DateTime.now(),
         _environment = environment,
         _releaseVersion = releaseVersion,
@@ -70,6 +73,7 @@ class PerformanceTracker {
     required String method,
     required String url,
     required String apiKey,
+    String? apiUrl,
     String? environment,
     String? releaseVersion,
     String? platform,
@@ -80,6 +84,7 @@ class PerformanceTracker {
     final tracker = PerformanceTracker(
       operation: '$method $path',
       apiKey: apiKey,
+      apiUrl: apiUrl,
       operationType: 'http',
       environment: environment,
       releaseVersion: releaseVersion,
@@ -97,6 +102,7 @@ class PerformanceTracker {
   factory PerformanceTracker.forDbQuery({
     required String queryType,
     required String apiKey,
+    String? apiUrl,
     String? tableName,
     String? environment,
     String? releaseVersion,
@@ -107,6 +113,7 @@ class PerformanceTracker {
     return PerformanceTracker(
       operation: operation,
       apiKey: apiKey,
+      apiUrl: apiUrl,
       operationType: 'db',
       environment: environment,
       releaseVersion: releaseVersion,
@@ -187,7 +194,7 @@ class PerformanceTracker {
   Future<void> _sendSpan(PerformanceSpan span) async {
     try {
       final response = await http.post(
-        Uri.parse('${RiviumTraceConstants.apiUrl}/api/performance/spans'),
+        Uri.parse('$_apiUrl/api/performance/spans'),
         headers: {
           'Content-Type': 'application/json',
           'X-API-Key': _apiKey,
@@ -219,6 +226,7 @@ class PerformanceTracker {
   static Future<T> track<T>({
     required String operation,
     required String apiKey,
+    String? apiUrl,
     String operationType = 'custom',
     String? environment,
     String? releaseVersion,
@@ -228,6 +236,7 @@ class PerformanceTracker {
     final tracker = PerformanceTracker(
       operation: operation,
       apiKey: apiKey,
+      apiUrl: apiUrl,
       operationType: operationType,
       environment: environment,
       releaseVersion: releaseVersion,
@@ -248,6 +257,7 @@ class PerformanceTracker {
   static T trackSync<T>({
     required String operation,
     required String apiKey,
+    String? apiUrl,
     String operationType = 'custom',
     String? environment,
     String? releaseVersion,
@@ -257,6 +267,7 @@ class PerformanceTracker {
     final tracker = PerformanceTracker(
       operation: operation,
       apiKey: apiKey,
+      apiUrl: apiUrl,
       operationType: operationType,
       environment: environment,
       releaseVersion: releaseVersion,

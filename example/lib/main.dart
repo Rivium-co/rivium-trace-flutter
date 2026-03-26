@@ -12,7 +12,7 @@ void main() async {
   // ========================================================================
   await RiviumTrace.initWithZone(
     RiviumTraceConfig(
-      apiKey: 'rv_live_64e0ada5eeb66e3adf6136337802a5a34713ce4966372854',
+      apiKey: 'rv_live_b9c41e8aab1cf206cad72f6a3697c61c5ead350e613daa67',
       environment: 'development',
       release: '0.1.0',
       debug: true,

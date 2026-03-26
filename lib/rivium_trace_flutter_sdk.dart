@@ -469,7 +469,7 @@ class RiviumTrace {
         if (tags != null && tags.isNotEmpty) 'tags': tags,
       };
 
-      final url = '${RiviumTraceConstants.apiUrl}/api/messages';
+      final url = '${_config.apiUrl}/api/messages';
       RiviumTraceLogger.debug('Sending message to $url - $message (level: $level)');
 
       final response = await _httpClient
@@ -519,7 +519,7 @@ class RiviumTrace {
     try {
       final response = await instance._httpClient
           .post(
-            Uri.parse('${RiviumTraceConstants.apiUrl}/api/performance/spans'),
+            Uri.parse('${instance._config.apiUrl}/api/performance/spans'),
             headers: {
               'Content-Type': 'application/json',
               'X-API-Key': instance._config.apiKey,
@@ -561,7 +561,7 @@ class RiviumTrace {
       final response = await instance._httpClient
           .post(
             Uri.parse(
-              '${RiviumTraceConstants.apiUrl}/api/performance/spans/batch',
+              '${instance._config.apiUrl}/api/performance/spans/batch',
             ),
             headers: {
               'Content-Type': 'application/json',
@@ -606,6 +606,7 @@ class RiviumTrace {
   }) {
     return PerformanceHttpClient(
       apiKey: instance._config.apiKey,
+      apiUrl: instance._config.apiUrl,
       environment: instance._config.environment,
       releaseVersion: instance._config.release,
       platform: instance._platformHandler.getPlatform(),
@@ -633,6 +634,7 @@ class RiviumTrace {
     return PerformanceTracker.track(
       operation: operation,
       apiKey: instance._config.apiKey,
+      apiUrl: instance._config.apiUrl,
       operationType: operationType,
       environment: instance._config.environment,
       releaseVersion: instance._config.release,
@@ -827,7 +829,7 @@ class RiviumTrace {
 
       final response = await _httpClient
           .post(
-            Uri.parse('${RiviumTraceConstants.apiUrl}/api/errors'),
+            Uri.parse('${_config.apiUrl}/api/errors'),
             headers: {
               'Content-Type': 'application/json',
               'X-API-Key': _config.apiKey,
@@ -891,7 +893,7 @@ class RiviumTrace {
 
           final response = await _httpClient
               .post(
-                Uri.parse('${RiviumTraceConstants.apiUrl}/api/errors'),
+                Uri.parse('${_config.apiUrl}/api/errors'),
                 headers: {
                   'Content-Type': 'application/json',
                   'X-API-Key': _config.apiKey,
@@ -955,6 +957,7 @@ class RiviumTrace {
 
     instance._logService = LogService(
       apiKey: instance._config.apiKey,
+      apiUrl: instance._config.apiUrl,
       sourceId: sourceId,
       sourceName: sourceName,
       platform: instance._platformHandler.getPlatform(),

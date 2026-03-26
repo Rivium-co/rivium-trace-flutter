@@ -1,9 +1,14 @@
+import '../constants/rivium_trace_constants.dart';
 import '../services/rivium_trace_logger.dart';
 
 /// Configuration options for RiviumTrace SDK
 class RiviumTraceConfig {
   /// API Key from Rivium Console (rv_live_xxx or rv_test_xxx)
   final String apiKey;
+
+  /// Custom API URL for self-hosted RiviumTrace instances
+  /// Defaults to the official RiviumTrace cloud service
+  final String apiUrl;
 
   /// Environment name (e.g., 'production', 'staging', 'development')
   final String environment;
@@ -53,6 +58,7 @@ class RiviumTraceConfig {
 
   const RiviumTraceConfig({
     required this.apiKey,
+    String? apiUrl,
     this.environment = 'production',
     this.release,
     this.captureUncaughtErrors = true,
@@ -63,7 +69,7 @@ class RiviumTraceConfig {
     this.sampleRate = 1.0,
     this.enableOfflineStorage = true,
     this.logHandler,
-  });
+  }) : apiUrl = apiUrl ?? RiviumTraceConstants.apiUrl;
 
   /// Create a simple configuration with just an API key
   factory RiviumTraceConfig.simple(String apiKey) {
@@ -73,6 +79,7 @@ class RiviumTraceConfig {
   /// Create a copy with modified values
   RiviumTraceConfig copyWith({
     String? apiKey,
+    String? apiUrl,
     String? environment,
     String? release,
     bool? captureUncaughtErrors,
@@ -86,6 +93,7 @@ class RiviumTraceConfig {
   }) {
     return RiviumTraceConfig(
       apiKey: apiKey ?? this.apiKey,
+      apiUrl: apiUrl ?? this.apiUrl,
       environment: environment ?? this.environment,
       release: release ?? this.release,
       captureUncaughtErrors:

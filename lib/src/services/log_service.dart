@@ -16,6 +16,7 @@ import 'rivium_trace_logger.dart';
 /// - Lifecycle hooks: flushes on app background, pauses when inactive
 class LogService with WidgetsBindingObserver {
   final String apiKey;
+  final String apiUrl;
   final String? sourceId;
   final String? sourceName;
   final String platform;
@@ -39,6 +40,7 @@ class LogService with WidgetsBindingObserver {
 
   LogService({
     required this.apiKey,
+    String? apiUrl,
     this.sourceId,
     this.sourceName,
     required this.platform,
@@ -48,7 +50,8 @@ class LogService with WidgetsBindingObserver {
     this.flushInterval = const Duration(seconds: 30),
     this.maxBufferSize = 1000, // Drop oldest logs when exceeding this
     http.Client? httpClient,
-  }) : _httpClient = httpClient ?? http.Client() {
+  }) : apiUrl = apiUrl ?? RiviumTraceConstants.apiUrl,
+       _httpClient = httpClient ?? http.Client() {
     // Register lifecycle observer
     WidgetsBinding.instance.addObserver(this);
   }
@@ -158,7 +161,7 @@ class LogService with WidgetsBindingObserver {
       };
 
       final response = await _httpClient.post(
-        Uri.parse('${RiviumTraceConstants.apiUrl}/api/logs/ingest'),
+        Uri.parse('$apiUrl/api/logs/ingest'),
         headers: {
           'Content-Type': 'application/json',
           'x-api-key': apiKey,
@@ -219,7 +222,7 @@ class LogService with WidgetsBindingObserver {
       };
 
       final response = await _httpClient.post(
-        Uri.parse('${RiviumTraceConstants.apiUrl}/api/logs/ingest/batch'),
+        Uri.parse('$apiUrl/api/logs/ingest/batch'),
         headers: {
           'Content-Type': 'application/json',
           'x-api-key': apiKey,

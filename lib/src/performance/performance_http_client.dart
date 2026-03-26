@@ -21,6 +21,7 @@ import '../services/rivium_trace_logger.dart';
 class PerformanceHttpClient extends http.BaseClient {
   final http.Client _inner;
   final String _apiKey;
+  final String _apiUrl;
   final String? _environment;
   final String? _releaseVersion;
   final String _platform;
@@ -45,6 +46,7 @@ class PerformanceHttpClient extends http.BaseClient {
   /// [minDurationMs] - Minimum duration to report (default 0)
   PerformanceHttpClient({
     required String apiKey,
+    String? apiUrl,
     String? environment,
     String? releaseVersion,
     String? platform,
@@ -54,6 +56,7 @@ class PerformanceHttpClient extends http.BaseClient {
     double minDurationMs = 0,
   })  : _inner = inner ?? http.Client(),
         _apiKey = apiKey,
+        _apiUrl = apiUrl ?? RiviumTraceConstants.apiUrl,
         _environment = environment,
         _releaseVersion = releaseVersion,
         _platform = platform ?? (kIsWeb ? 'web' : 'flutter'),
@@ -137,7 +140,7 @@ class PerformanceHttpClient extends http.BaseClient {
   bool _shouldSkipTracking(Uri url) {
     // Skip RiviumTrace API calls
     if (url.host.contains('rivium') ||
-        url.toString().contains(RiviumTraceConstants.apiUrl)) {
+        url.toString().contains(_apiUrl)) {
       return true;
     }
 
@@ -190,7 +193,7 @@ class PerformanceHttpClient extends http.BaseClient {
 
     try {
       final response = await http.post(
-        Uri.parse('${RiviumTraceConstants.apiUrl}/api/performance/spans/batch'),
+        Uri.parse('$_apiUrl/api/performance/spans/batch'),
         headers: {
           'Content-Type': 'application/json',
           'X-API-Key': _apiKey,
