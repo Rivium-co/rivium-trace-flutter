@@ -30,7 +30,7 @@ Add this to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  rivium_trace_flutter_sdk: ^0.1.0
+  rivium_trace_flutter_sdk: ^0.1.1
 ```
 
 Run:
@@ -40,34 +40,13 @@ flutter pub get
 
 ## Quick Start
 
-### 1. Initialize RiviumTrace (Basic)
+### Rivium Cloud (Default)
 
 ```dart
 import 'package:flutter/material.dart';
 import 'package:rivium_trace_flutter/rivium_trace.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-
-  // Initialize RiviumTrace
-  await RiviumTrace.init(RiviumTraceConfig(
-    apiKey: 'rv_live_your_api_key_here',
-    environment: 'production',
-    release: '0.1.0',
-  ));
-
-  runApp(MyApp());
-}
-```
-
-### 1b. Initialize RiviumTrace (Recommended - Better Error Catching)
-
-```dart
-import 'package:flutter/material.dart';
-import 'package:rivium_trace_flutter/rivium_trace.dart';
-
-void main() async {
-  // IMPORTANT: Initialize RiviumTrace FIRST, before WidgetsFlutterBinding
   await RiviumTrace.initWithZone(
     RiviumTraceConfig(
       apiKey: 'rv_live_your_api_key_here',
@@ -76,16 +55,47 @@ void main() async {
       captureUncaughtErrors: true,
     ),
     () async {
-      // Move all initialization inside this callback
       WidgetsFlutterBinding.ensureInitialized();
-
-      // Any other async initialization goes here
-      // await Firebase.initializeApp();
-      // await setupDatabase();
-
       runApp(MyApp());
     },
   );
+}
+```
+
+### Self-Hosted
+
+If you're running [RiviumTrace Self-Hosted](https://github.com/Rivium-co/rivium-selfhosted), just add `apiUrl` pointing to your server:
+
+```dart
+await RiviumTrace.initWithZone(
+  RiviumTraceConfig(
+    apiKey: 'rv_live_your_api_key_here',
+    apiUrl: 'http://your-server:3001',  // Your self-hosted Trace API
+    environment: 'production',
+    release: '0.1.0',
+    captureUncaughtErrors: true,
+  ),
+  () async {
+    WidgetsFlutterBinding.ensureInitialized();
+    runApp(MyApp());
+  },
+);
+```
+
+### Basic Init (Alternative)
+
+```dart
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await RiviumTrace.init(RiviumTraceConfig(
+    apiKey: 'rv_live_your_api_key_here',
+    // apiUrl: 'http://your-server:3001',  // Uncomment for self-hosted
+    environment: 'production',
+    release: '0.1.0',
+  ));
+
+  runApp(MyApp());
 }
 ```
 
@@ -116,6 +126,7 @@ await RiviumTrace.captureMessage(
 ```dart
 RiviumTraceConfig(
   apiKey: 'rv_live_xxx',                            // Required (from RiviumTrace Console)
+  apiUrl: 'http://your-server:3001',                // Optional — for self-hosted only
   environment: 'production',                        // Default: 'production'
   release: '0.1.0',                                 // Optional
   captureUncaughtErrors: true,                      // Default: true
@@ -125,7 +136,7 @@ RiviumTraceConfig(
 )
 ```
 
-**Note:** The SDK automatically uses `https://trace.rivium.co` as the API endpoint. Get your API key from the RiviumTrace Console (format: `rv_live_xxx` or `rv_test_xxx`).
+**Note:** The SDK defaults to `https://trace.rivium.co` (Rivium Cloud). For self-hosted, set `apiUrl` to your server address. Get your API key from the RiviumTrace Console (format: `rv_live_xxx` or `rv_test_xxx`).
 
 ## Platform-Specific Usage
 
@@ -135,8 +146,9 @@ RiviumTraceConfig(
 void main() async {
   await RiviumTrace.init(RiviumTraceConfig(
     apiKey: 'rv_live_your_api_key',
+    // apiUrl: 'http://your-server:3001',  // Uncomment for self-hosted
     environment: 'production',
-    debug: false, // Disable in production extensions
+    debug: false,
   ));
 
   runApp(MyExtensionApp());
@@ -149,8 +161,9 @@ void main() async {
 void main() async {
   await RiviumTrace.init(RiviumTraceConfig(
     apiKey: 'rv_live_your_api_key',
+    // apiUrl: 'http://your-server:3001',  // Uncomment for self-hosted
     environment: 'production',
-    captureUncaughtErrors: true, // Recommended for mobile
+    captureUncaughtErrors: true,
   ));
 
   runApp(MyMobileApp());
@@ -163,8 +176,9 @@ void main() async {
 void main() async {
   await RiviumTrace.init(RiviumTraceConfig(
     apiKey: 'rv_live_your_api_key',
+    // apiUrl: 'http://your-server:3001',  // Uncomment for self-hosted
     environment: 'production',
-    debug: kDebugMode, // Enable debug in development
+    debug: kDebugMode,
   ));
 
   runApp(MyWebApp());
