@@ -1,6 +1,6 @@
 name: rivium_trace_flutter_sdk
 description: "Flutter SDK for RiviumTrace error tracking platform. Supports web, mobile, and Chrome extensions."
-version: 0.1.1
+version: 0.1.2
 homepage: https://rivium.co/cloud/rivium-trace
 repository: https://github.com/Rivium-co/rivium-trace-flutter
 documentation: https://rivium.co/cloud/rivium-trace
