@@ -18,6 +18,7 @@ export 'src/models/rivium_trace_config.dart';
 export 'src/models/performance_span.dart';
 export 'src/models/log_entry.dart';
 export 'src/tools/rivium_trace_navigator_observer.dart';
+export 'src/tools/rivium_trace_gesture_tracker.dart';
 export 'src/services/rivium_trace_breadcrumbs.dart';
 export 'src/models/breadcrumb.dart' show BreadcrumbType;
 export 'src/models/message_level.dart';
@@ -677,6 +678,22 @@ class RiviumTrace {
   /// Clear all breadcrumbs
   static void clearBreadcrumbs() {
     RiviumTraceBreadcrumbs.clear();
+  }
+
+  /// Auto-capture user taps as breadcrumbs across all platforms
+  /// (web, android, ios, macos, windows, linux). Call once after init.
+  ///
+  /// When an error fires, the issue detail will show the widget the user
+  /// tapped just before — usually enough to reproduce without a perfect
+  /// stack trace.
+  static void enableGestureBreadcrumbs() {
+    RiviumTraceGestureTracker.enable();
+  }
+
+  /// Stop auto-capturing taps. The tracker is idempotent so re-enabling later
+  /// is safe.
+  static void disableGestureBreadcrumbs() {
+    RiviumTraceGestureTracker.disable();
   }
 
   // === Private Methods ===
