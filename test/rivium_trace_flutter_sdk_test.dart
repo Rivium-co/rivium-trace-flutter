@@ -3,6 +3,10 @@ import 'package:rivium_trace_flutter_sdk/rivium_trace_flutter_sdk.dart';
 import 'package:rivium_trace_flutter_sdk/src/services/rivium_trace_logger.dart';
 
 void main() {
+  // Initialize the test binding so MethodChannel construction in the
+  // native plugin wrapper does not throw before our defensive catches run.
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   group('RiviumTrace', () {
     setUp(() async {
       // Reset state between tests

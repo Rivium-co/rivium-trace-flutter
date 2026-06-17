@@ -315,58 +315,25 @@ class _HomePageState extends State<HomePage> {
   }
 
   // ========================================================================
-  // Crash Detection - Check if the app crashed in the previous session
-  // Mobile only: uses marker files to detect unclean exits.
-  // Automatically handled by initWithZone, but you can also check manually.
+  // Crash Detection — 2.0.0 note
+  // Native crashes are now captured by PLCrashReporter (iOS) and
+  // ApplicationExitInfo (Android, API 30+) and automatically posted on
+  // the next launch. There is no manual check API anymore — there is
+  // nothing for the app to do beyond calling RiviumTrace.initWithZone(...).
   // ========================================================================
   Future<void> _testCrashDetection() async {
-    setState(() => _status = 'Checking crash status...');
-
-    final didCrash = await CrashDetector.didCrashLastSession();
-    final lastCrashTime = await CrashDetector.getLastCrashTime();
-
-    if (didCrash) {
-      // Retrieve the crash report from the previous session
-      final crashReport = await CrashDetector.getCrashReport(
-        RiviumTrace.getPlatform() ?? 'unknown',
-        'production',
-        '0.1.0',
-      );
-
-      if (crashReport != null) {
-        // Send the crash report to RiviumTrace
-        await RiviumTrace.captureException(
-          Exception(crashReport.message),
-          message: 'Crash detected from previous session',
-          extra: {
-            'crash_time': lastCrashTime?.toIso8601String(),
-            'detected_at': DateTime.now().toIso8601String(),
-          },
-        );
-      }
-
-      setState(
-        () => _status =
-            'Previous session crashed at ${lastCrashTime?.toIso8601String() ?? "unknown"}',
-      );
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Crash detected from previous session!'),
-            backgroundColor: Colors.red,
+    setState(
+      () => _status =
+          'Native crashes are auto-reported on next launch (no manual check).',
+    );
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Native crashes are captured automatically by the native plugin.',
           ),
-        );
-      }
-    } else {
-      setState(() => _status = 'No crash detected in previous session');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('No crash in previous session (clean exit)'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
+        ),
+      );
     }
   }
 

@@ -1,6 +1,6 @@
 name: rivium_trace_flutter_sdk
-description: "Flutter SDK for RiviumTrace error tracking platform. Supports web, mobile, and Chrome extensions."
-version: 0.1.3
+description: "Flutter plugin for RiviumTrace error tracking with real native crash capture on iOS (PLCrashReporter) and Android (ApplicationExitInfo)."
+version: 2.0.0
 homepage: https://rivium.co/cloud/rivium-trace
 repository: https://github.com/Rivium-co/rivium-trace-flutter
 documentation: https://rivium.co/cloud/rivium-trace
@@ -29,6 +29,13 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
+  plugin:
+    platforms:
+      ios:
+        pluginClass: RiviumTraceFlutterSdkPlugin
+      android:
+        package: co.rivium.trace.sdk.flutter
+        pluginClass: RiviumTraceFlutterSdkPlugin
 
   # To add assets to your package, add an assets section, like this:
   # assets:

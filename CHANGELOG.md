@@ -1,3 +1,26 @@
+## 2.0.0
+
+* **Breaking — real native crash capture.** The package is now a federated
+  Flutter plugin instead of a pure-Dart package. iOS native crashes
+  (SIGSEGV, SIGABRT, SIGBUS, SIGILL, SIGFPE, SIGTRAP, Mach exceptions)
+  are captured via the vendored PLCrashReporter 1.12.0 (MIT). Android
+  crashes are captured via `Thread.setDefaultUncaughtExceptionHandler`
+  (in-process, all API levels) and `ApplicationExitInfo` (API 30+).
+  After updating, customers must run `pod install` on iOS and a clean
+  Gradle build on Android.
+* **Breaking — false-positive `CrashDetector` removed.** The previous
+  lifecycle-marker heuristic reported any non-graceful close as a
+  "native crash" with no stack trace. It was the source of the
+  "Native crash - No Dart stack trace available" reports flooding
+  customer dashboards. It is deleted along with its public export.
+  If your app imported `CrashDetector` directly (the previous Sareban
+  workaround), remove those calls.
+* The native iOS and Android RiviumTrace SDK sources are vendored
+  inside this plugin for the current release so the plugin can be
+  consumed before the standalone SDKs are published. A follow-up
+  release will replace the vendored copies with versioned CocoaPods /
+  Maven dependencies; no Dart-side API changes.
+
 ## 0.1.3
 
 * **New**: Auto-capture user taps as breadcrumbs across all platforms (Web, Android, iOS, macOS, Windows, Linux). Enable with `RiviumTrace.enableGestureBreadcrumbs()` after init. Each breadcrumb captures widget type, label, optional `ValueKey`, current route, and tap coordinates.

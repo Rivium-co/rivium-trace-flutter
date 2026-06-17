@@ -4,7 +4,7 @@ class RiviumTraceConstants {
   static const String apiUrl = 'https://trace.rivium.co';
 
   /// SDK version
-  static const String sdkVersion = '0.1.3';
+  static const String sdkVersion = '2.0.0';
 
   RiviumTraceConstants._(); // Private constructor to prevent instantiation
 }

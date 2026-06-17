@@ -1,0 +1,107 @@
+// Flutter plugin module: bridges Dart -> Android RiviumTrace SDK.
+// The native SDK source is vendored under src/main/kotlin/co/rivium/trace/sdk/
+// so this plugin can be consumed without the standalone Maven artifact
+// being published. When that artifact is published, the vendored sources
+// will be removed and a `implementation 'co.rivium.trace:rivium-trace-android-sdk:2.0.0'`
+// dependency will replace them.
+
+group 'co.rivium.trace.sdk.flutter'
+version '2.0.0'
+
+buildscript {
+    ext.kotlin_version = '1.9.22'
+    repositories {
+        google()
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.2.2'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
+rootProject.allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+
+android {
+    // Namespace deliberately matches the vendored SDK so the generated
+    // co.rivium.trace.sdk.BuildConfig resolves for the vendored sources.
+    // The Flutter plugin class lives in co.rivium.trace.sdk.flutter.
+    if (project.android.hasProperty("namespace")) {
+        namespace 'co.rivium.trace.sdk'
+    }
+
+    compileSdk 34
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+
+    sourceSets {
+        main.java.srcDirs += 'src/main/kotlin'
+        test.java.srcDirs += 'src/test/kotlin'
+    }
+
+    defaultConfig {
+        // Same floor as the standalone SDK — JVM crash handler runs on
+        // every API level; ApplicationExitInfo gates internally to API 30+.
+        minSdkVersion 16
+        targetSdkVersion 34
+
+        // Vendored RiviumTraceClient.kt references BuildConfig.SDK_VERSION
+        // qualified as co.rivium.trace.sdk.BuildConfig, so it must be
+        // generated under that package. Achieved with libraryVariants below.
+        buildConfigField "String", "SDK_VERSION", "\"2.0.0\""
+    }
+
+    buildFeatures {
+        buildConfig true
+    }
+
+    lint {
+        abortOnError false
+        checkReleaseBuilds false
+    }
+
+    dependencies {
+        testImplementation 'org.jetbrains.kotlin:kotlin-test'
+        testImplementation 'org.mockito:mockito-core:5.0.0'
+    }
+
+    testOptions {
+        unitTests.all {
+            useJUnitPlatform()
+            testLogging {
+                events "passed", "skipped", "failed", "standardOut", "standardError"
+                outputs.upToDateWhen { false }
+                showStandardStreams = true
+            }
+        }
+    }
+}
+
+dependencies {
+    // Vendored RiviumTrace Android SDK transitive dependencies. When this
+    // plugin switches to a Maven dependency on the SDK, these become
+    // transitive and the explicit lines below can be removed.
+    implementation 'androidx.core:core-ktx:1.12.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.code.gson:gson:2.10.1'
+    implementation 'com.squareup.okhttp3:okhttp:3.12.13'
+    implementation 'androidx.lifecycle:lifecycle-process:2.7.0'
+    implementation 'androidx.lifecycle:lifecycle-common-java8:2.7.0'
+    implementation 'androidx.work:work-runtime-ktx:2.9.0'
+}

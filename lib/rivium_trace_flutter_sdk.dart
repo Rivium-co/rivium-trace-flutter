@@ -9,6 +9,7 @@ import 'package:rivium_trace_flutter_sdk/rivium_trace_flutter_sdk.dart';
 
 // Platform-specific imports
 import 'src/platform/platform_handler.dart';
+import 'src/platform/rivium_trace_native_plugin.dart';
 import 'src/constants/rivium_trace_constants.dart';
 import 'src/services/rivium_trace_logger.dart';
 // Log service is imported via export above
@@ -22,7 +23,6 @@ export 'src/tools/rivium_trace_gesture_tracker.dart';
 export 'src/services/rivium_trace_breadcrumbs.dart';
 export 'src/models/breadcrumb.dart' show BreadcrumbType;
 export 'src/models/message_level.dart';
-export 'src/utils/crash_detector.dart';
 export 'src/network/rivium_trace_http_client.dart';
 export 'src/performance/performance_http_client.dart';
 export 'src/performance/performance_tracker.dart';
@@ -95,10 +95,12 @@ class RiviumTrace {
         // Run user's app initialization
         await app();
 
-        // NOW check for crashes (after WidgetsFlutterBinding is initialized)
+        // After WidgetsFlutterBinding is up, initialize the native plugin
+        // (installs PLCrashReporter on iOS, ApplicationExitInfo polling on
+        // Android) and drain any crash report left by the previous session.
         if (!kIsWeb) {
-          await _instance!._checkPreviousSessionCrash();
-          await CrashDetector.markAppStart();
+          await RiviumTraceNativePlugin.init(_instance!._config);
+          await _instance!._drainNativeCrashesFromPreviousSession();
         }
       },
       (error, stackTrace) {
@@ -134,19 +136,15 @@ class RiviumTrace {
       await OfflineStorageService.initialize();
     }
 
-    // Check for crashes from previous session (mobile only)
-    if (!kIsWeb) {
-      await _checkPreviousSessionCrash();
-    }
-
     // Set up automatic error catching
     if (_config.captureUncaughtErrors) {
       _setupErrorHandling();
     }
 
-    // Mark app as started (for crash detection)
+    // Initialize the native plugin and drain any previous-session crashes.
     if (!kIsWeb) {
-      await CrashDetector.markAppStart();
+      await RiviumTraceNativePlugin.init(_config);
+      await _drainNativeCrashesFromPreviousSession();
     }
 
     _isInitialized = true;
@@ -209,32 +207,39 @@ class RiviumTrace {
     RiviumTraceLogger.info('Initialized for ${_platformHandler.getPlatform()}');
   }
 
-  /// Check if the app crashed in the previous session and report it
-  Future<void> _checkPreviousSessionCrash() async {
+  /// Drain native crash reports left by the previous session.
+  ///
+  /// On iOS PLCrashReporter writes a `.plcrash` file on crash; the native
+  /// SDK parses it on next init and POSTs the report directly. On Android
+  /// the native SDK reads `ApplicationExitInfo` records and POSTs them.
+  /// Both paths happen inside the native plugin; this method exists as the
+  /// hook for any *additional* crash payloads the native side wants Dart
+  /// to forward (currently empty list).
+  Future<void> _drainNativeCrashesFromPreviousSession() async {
     try {
-      final didCrash = await CrashDetector.didCrashLastSession();
-
-      if (didCrash) {
-        final crashReport = await CrashDetector.getCrashReport(
-          _platformHandler.getPlatform(),
-          _config.environment,
-          _config.release,
+      final reports =
+          await RiviumTraceNativePlugin.drainPendingCrashReports();
+      for (final report in reports) {
+        final error = RiviumTraceError(
+          message: (report['message'] as String?) ??
+              'Native crash from previous session',
+          stackTrace: report['stack_trace'] as String? ?? '',
+          platform: _platformHandler.getPlatform(),
+          environment: _config.environment,
+          release: _config.release,
+          timestamp: DateTime.fromMillisecondsSinceEpoch(
+            (report['timestamp'] as int?) ??
+                DateTime.now().millisecondsSinceEpoch,
+          ),
+          extra: Map<String, dynamic>.from(
+            (report['extra'] as Map?) ?? const {},
+          ),
         );
-
-        if (crashReport != null) {
-          RiviumTraceLogger.info(
-            'Detected crash from previous session at ${crashReport.timestamp}',
-          );
-
-          // Send the crash report
-          await _captureError(crashReport);
-        }
-
-        // Clean up all crash detection files after reporting
-        await CrashDetector.cleanup();
+        RiviumTraceLogger.info('Forwarding native crash from previous session');
+        await _captureError(error);
       }
     } catch (e) {
-      RiviumTraceLogger.warning('Error checking previous crash', e);
+      RiviumTraceLogger.warning('Error draining native crash reports', e);
     }
   }
 
@@ -243,6 +248,11 @@ class RiviumTrace {
     if (_instance != null) {
       _instance!._userId = userId;
       RiviumTraceBreadcrumbs.addSystem('User ID set', data: {'user_id': userId});
+      if (!kIsWeb) {
+        // Best-effort propagation to native side so a native crash report
+        // is tagged with the same user.
+        unawaited(RiviumTraceNativePlugin.setUserId(userId));
+      }
     }
   }
 
@@ -946,9 +956,8 @@ class RiviumTrace {
     await _instance?._logService?.flush();
     _instance?._logService?.dispose();
 
-    // Mark app as closed gracefully (for crash detection)
     if (!kIsWeb) {
-      await CrashDetector.markAppClose();
+      await RiviumTraceNativePlugin.close();
     }
 
     _instance?._httpClient.close();
