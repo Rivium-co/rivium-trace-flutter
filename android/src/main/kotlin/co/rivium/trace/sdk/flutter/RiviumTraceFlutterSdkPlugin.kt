@@ -67,7 +67,7 @@ class RiviumTraceFlutterSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandl
             anrTimeoutMs = (call.argument<Int>("anrTimeoutMs") ?: 5000).toLong(),
             maxBreadcrumbs = call.argument<Int>("maxBreadcrumbs") ?: 20,
             enableOfflineStorage = call.argument<Boolean>("enableOfflineStorage") ?: true,
-            sampleRate = call.argument<Double>("sampleRate") ?: 1.0,
+            sampleRate = (call.argument<Double>("sampleRate") ?: 1.0).toFloat(),
             apiUrl = call.argument<String>("apiUrl") ?: "https://trace.rivium.co"
         )
 

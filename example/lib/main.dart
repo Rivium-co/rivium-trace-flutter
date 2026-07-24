@@ -1,6 +1,18 @@
 // example/main.dart
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:rivium_trace_flutter_sdk/rivium_trace_flutter_sdk.dart';
+
+// Example-owned channel that talks to the native crash helper in
+// example/android/app. Kept out of the plugin so consumers of the SDK
+// don't inherit an NDK / JNI dependency.
+const MethodChannel _exampleCrashChannel =
+    MethodChannel('co.rivium.trace.example/crash_helper');
+
+Future<void> _triggerExampleCrash(String kind) =>
+    _exampleCrashChannel.invokeMethod<void>('crashNative', {'kind': kind});
 
 void main() async {
   // ========================================================================
@@ -12,8 +24,7 @@ void main() async {
   // ========================================================================
   await RiviumTrace.initWithZone(
     RiviumTraceConfig(
-      apiKey: 'rv_live_1fb14a9cead2a0e9c5767b145d21883a6765e955e230d054',
-      apiUrl: 'http://192.168.xxx.xxx:3001', //self host ip
+      apiKey: 'rv_live_8a51c84264f6360dd8f7c914491d8ba0d51476429d17935e',
       environment: 'development',
       release: '0.1.0',
       debug: true,
@@ -124,6 +135,27 @@ class _HomePageState extends State<HomePage> {
 
     // This throws outside a try/catch — the zone from initWithZone catches it
     throw Exception('Intentional crash for testing RiviumTrace');
+  }
+
+  // ========================================================================
+  // Native crash triggers — exercise the platform crash reporter.
+  // The app process dies immediately. On next launch, PLCrashReporter (iOS)
+  // or ApplicationExitInfo (Android, API 30+) drains the pending report and
+  // POSTs it to the backend. Nothing to do app-side other than relaunch.
+  // ========================================================================
+  Future<void> _testNativeCrashSignal() async {
+    RiviumTrace.addUserBreadcrumb('User triggered native SIGSEGV');
+    await _triggerExampleCrash('signal');
+  }
+
+  Future<void> _testNativeCrashAbort() async {
+    RiviumTrace.addUserBreadcrumb('User triggered native abort()');
+    await _triggerExampleCrash('abort');
+  }
+
+  Future<void> _testNativeAnr() async {
+    RiviumTrace.addUserBreadcrumb('User triggered ANR (main thread block)');
+    await _triggerExampleCrash('anr');
   }
 
   Future<void> _testMessages() async {
@@ -572,6 +604,31 @@ class _HomePageState extends State<HomePage> {
                     Colors.indigo,
                     _testSampleRate,
                   ),
+
+                  SizedBox(height: 12),
+                  _buildSectionHeader('Native Crash Tests (kills app)'),
+                  _buildFeatureButton(
+                    'Native Crash (SIGSEGV)',
+                    'Null-deref on native side. Report arrives on next launch.',
+                    Icons.bug_report,
+                    Colors.red[900]!,
+                    _testNativeCrashSignal,
+                  ),
+                  _buildFeatureButton(
+                    'Native Crash (abort)',
+                    'Call abort() natively. Report arrives on next launch.',
+                    Icons.stop_circle,
+                    Colors.red[900]!,
+                    _testNativeCrashAbort,
+                  ),
+                  if (!kIsWeb && Platform.isAndroid)
+                    _buildFeatureButton(
+                      'ANR (Android)',
+                      'Blocks main thread 15s. ApplicationExitInfo records it.',
+                      Icons.hourglass_disabled,
+                      Colors.amber[900]!,
+                      _testNativeAnr,
+                    ),
                 ],
               ),
             ),

@@ -18,6 +18,8 @@ buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:8.2.2'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        // Protobuf codegen for Android tombstone parsing (Tombstone.proto).
+        classpath 'com.google.protobuf:protobuf-gradle-plugin:0.9.4'
     }
 }
 
@@ -30,6 +32,7 @@ rootProject.allprojects {
 
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
+apply plugin: 'com.google.protobuf'
 
 android {
     // Namespace deliberately matches the vendored SDK so the generated
@@ -104,4 +107,25 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-process:2.7.0'
     implementation 'androidx.lifecycle:lifecycle-common-java8:2.7.0'
     implementation 'androidx.work:work-runtime-ktx:2.9.0'
+    // Protobuf runtime for parsing binary Android tombstones produced by
+    // ApplicationExitInfo.getTraceInputStream() on API 30+. Lite runtime
+    // (~130KB) is the Android-optimised variant.
+    implementation 'com.google.protobuf:protobuf-javalite:3.25.5'
+}
+
+// Codegen Java classes from vendored tombstone.proto (see src/main/proto/).
+protobuf {
+    protoc {
+        artifact = 'com.google.protobuf:protoc:3.25.5'
+    }
+    generateProtoTasks {
+        all().each { task ->
+            task.builtins {
+                // "lite" produces the smaller runtime we depend on above.
+                java {
+                    option 'lite'
+                }
+            }
+        }
+    }
 }
