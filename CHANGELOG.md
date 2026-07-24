@@ -1,13 +1,23 @@
-## 2.0.0
+## 0.2.0
 
+* **Breaking — un-vendor: the plugin now depends on the published
+  standalone SDKs** (`co.rivium.trace:rivium-trace-android-sdk:0.2.0` on
+  Maven Central + `RiviumTrace ~> 0.2.0` on CocoaPods / SPM). The vendored
+  Kotlin + Swift SDK sources and the `CrashReporter.xcframework` are removed
+  from this package. Consumers must run `pod install` on iOS and a clean
+  Gradle build on Android.
+* Native tombstones are now parsed into a Sentry-shape structured event on
+  device (both platforms) and posted in `resolved_stack_trace`. The Rivium
+  Trace dashboard renders them frame-by-frame with signal metadata, a
+  thread selector, register dump, and per-frame image + instruction
+  address.
 * **Breaking — real native crash capture.** The package is now a federated
   Flutter plugin instead of a pure-Dart package. iOS native crashes
   (SIGSEGV, SIGABRT, SIGBUS, SIGILL, SIGFPE, SIGTRAP, Mach exceptions)
-  are captured via the vendored PLCrashReporter 1.12.0 (MIT). Android
-  crashes are captured via `Thread.setDefaultUncaughtExceptionHandler`
-  (in-process, all API levels) and `ApplicationExitInfo` (API 30+).
-  After updating, customers must run `pod install` on iOS and a clean
-  Gradle build on Android.
+  are captured via PLCrashReporter 1.12.0 (MIT, transitively provided by
+  the RiviumTrace pod). Android crashes are captured via
+  `Thread.setDefaultUncaughtExceptionHandler` (in-process, all API levels)
+  and `ApplicationExitInfo` (API 30+).
 * **Breaking — false-positive `CrashDetector` removed.** The previous
   lifecycle-marker heuristic reported any non-graceful close as a
   "native crash" with no stack trace. It was the source of the
