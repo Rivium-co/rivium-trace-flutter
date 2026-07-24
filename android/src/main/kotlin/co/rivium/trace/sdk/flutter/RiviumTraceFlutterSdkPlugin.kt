@@ -10,13 +10,8 @@ import io.flutter.plugin.common.MethodChannel
 
 /**
  * Flutter plugin entry point bridging Dart -> Android RiviumTrace SDK.
- *
- * The native SDK source is vendored under
- * `src/main/kotlin/co/rivium/trace/sdk/` so this plugin can be consumed
- * without the standalone Maven artifact being published. When the
- * artifact is published, the vendored sources will be removed and the
- * imports above will resolve to the published library instead — no
- * changes needed in this file.
+ * The native SDK is pulled from Maven Central
+ * (`co.rivium.trace:rivium-trace-android-sdk`) — see build.gradle.
  */
 class RiviumTraceFlutterSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
 

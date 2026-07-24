@@ -1,12 +1,10 @@
 // Flutter plugin module: bridges Dart -> Android RiviumTrace SDK.
-// The native SDK source is vendored under src/main/kotlin/co/rivium/trace/sdk/
-// so this plugin can be consumed without the standalone Maven artifact
-// being published. When that artifact is published, the vendored sources
-// will be removed and a `implementation 'co.rivium.trace:rivium-trace-android-sdk:2.0.0'`
-// dependency will replace them.
+// The native SDK is now published to Maven Central and pulled as a
+// dependency. Only the Flutter MethodChannel bridge lives in this repo
+// (src/main/kotlin/co/rivium/trace/sdk/flutter/).
 
 group 'co.rivium.trace.sdk.flutter'
-version '2.0.0'
+version '0.2.0'
 
 buildscript {
     ext.kotlin_version = '1.9.22'
@@ -18,8 +16,6 @@ buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:8.2.2'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        // Protobuf codegen for Android tombstone parsing (Tombstone.proto).
-        classpath 'com.google.protobuf:protobuf-gradle-plugin:0.9.4'
     }
 }
 
@@ -32,14 +28,13 @@ rootProject.allprojects {
 
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
-apply plugin: 'com.google.protobuf'
 
 android {
-    // Namespace deliberately matches the vendored SDK so the generated
-    // co.rivium.trace.sdk.BuildConfig resolves for the vendored sources.
-    // The Flutter plugin class lives in co.rivium.trace.sdk.flutter.
+    // Namespace must be co.rivium.trace.sdk.flutter to match the plugin
+    // class package, and NOT the SDK's own namespace — the SDK is now a
+    // separate AAR and owns its own BuildConfig.
     if (project.android.hasProperty("namespace")) {
-        namespace 'co.rivium.trace.sdk'
+        namespace 'co.rivium.trace.sdk.flutter'
     }
 
     compileSdk 34
@@ -63,15 +58,6 @@ android {
         // every API level; ApplicationExitInfo gates internally to API 30+.
         minSdkVersion 16
         targetSdkVersion 34
-
-        // Vendored RiviumTraceClient.kt references BuildConfig.SDK_VERSION
-        // qualified as co.rivium.trace.sdk.BuildConfig, so it must be
-        // generated under that package. Achieved with libraryVariants below.
-        buildConfigField "String", "SDK_VERSION", "\"2.0.0\""
-    }
-
-    buildFeatures {
-        buildConfig true
     }
 
     lint {
@@ -97,35 +83,7 @@ android {
 }
 
 dependencies {
-    // Vendored RiviumTrace Android SDK transitive dependencies. When this
-    // plugin switches to a Maven dependency on the SDK, these become
-    // transitive and the explicit lines below can be removed.
-    implementation 'androidx.core:core-ktx:1.12.0'
-    implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'com.google.code.gson:gson:2.10.1'
-    implementation 'com.squareup.okhttp3:okhttp:3.12.13'
-    implementation 'androidx.lifecycle:lifecycle-process:2.7.0'
-    implementation 'androidx.lifecycle:lifecycle-common-java8:2.7.0'
-    implementation 'androidx.work:work-runtime-ktx:2.9.0'
-    // Protobuf runtime for parsing binary Android tombstones produced by
-    // ApplicationExitInfo.getTraceInputStream() on API 30+. Lite runtime
-    // (~130KB) is the Android-optimised variant.
-    implementation 'com.google.protobuf:protobuf-javalite:3.25.5'
-}
-
-// Codegen Java classes from vendored tombstone.proto (see src/main/proto/).
-protobuf {
-    protoc {
-        artifact = 'com.google.protobuf:protoc:3.25.5'
-    }
-    generateProtoTasks {
-        all().each { task ->
-            task.builtins {
-                // "lite" produces the smaller runtime we depend on above.
-                java {
-                    option 'lite'
-                }
-            }
-        }
-    }
+    // Published RiviumTrace Android SDK. Transitively pulls androidx.core,
+    // okhttp, gson, lifecycle, work, and protobuf-javalite.
+    implementation 'co.rivium.trace:rivium-trace-android-sdk:0.2.0'
 }

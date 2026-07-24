@@ -1,15 +1,12 @@
 Pod::Spec.new do |s|
   s.name             = 'rivium_trace_flutter_sdk'
-  s.version          = '2.0.0'
+  s.version          = '0.2.0'
   s.summary          = 'RiviumTrace Flutter plugin with real native crash capture'
   s.description      = <<-DESC
-RiviumTrace error tracking and APM SDK for Flutter. iOS native crashes
-are captured via PLCrashReporter (vendored MIT). The plugin bridges
-Dart to the native iOS RiviumTrace SDK using a MethodChannel.
-
-Currently vendors the iOS SDK sources directly under Vendor/. When the
-standalone RiviumTrace pod is published, this podspec will be changed
-to depend on it instead and the Vendor/ directory removed.
+RiviumTrace error tracking and APM SDK for Flutter. Native iOS crashes
+are captured by the standalone RiviumTrace pod (which uses PLCrashReporter
+under the hood). This package only contains the Flutter MethodChannel
+bridge from Dart to the native SDK.
   DESC
 
   s.homepage         = 'https://rivium.co/cloud/rivium-trace'
@@ -22,18 +19,13 @@ to depend on it instead and the Vendor/ directory removed.
   s.swift_version          = '5.5'
   s.static_framework       = true
 
-  # Bridge + vendored RiviumTrace iOS SDK sources.
-  s.source_files = [
-    'Classes/**/*',
-    'Vendor/RiviumTrace/**/*.swift'
-  ]
+  # Flutter plugin bridge only. The native crash reporter + all other
+  # SDK classes come from the standalone RiviumTrace pod below.
+  s.source_files = 'Classes/**/*'
   s.public_header_files = 'Classes/**/*.h'
 
   s.dependency 'Flutter'
-
-  # Vendored PLCrashReporter (MIT). Async-signal-safe native crash capture.
-  # See THIRD_PARTY_NOTICES.txt at the package root.
-  s.vendored_frameworks = 'Vendor/CrashReporter.xcframework'
+  s.dependency 'RiviumTrace', '~> 0.2.0'
 
   s.pod_target_xcconfig = {
     'DEFINES_MODULE' => 'YES',

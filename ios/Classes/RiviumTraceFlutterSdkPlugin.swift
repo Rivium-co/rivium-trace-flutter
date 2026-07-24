@@ -1,12 +1,9 @@
 import Flutter
 import UIKit
+import RiviumTrace
 
 /// Flutter plugin entry point bridging Dart -> iOS RiviumTrace SDK.
-///
-/// The native SDK source is vendored under `Vendor/RiviumTrace/` so this
-/// plugin can be consumed without the standalone CocoaPod being published.
-/// When the pod is published, this file's import of `RiviumTrace` symbols
-/// stays the same; only the podspec changes.
+/// The native SDK lives in the standalone `RiviumTrace` pod (see podspec).
 public class RiviumTraceFlutterSdkPlugin: NSObject, FlutterPlugin {
 
     public static func register(with registrar: FlutterPluginRegistrar) {
