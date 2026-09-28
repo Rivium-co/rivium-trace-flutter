@@ -1,6 +1,6 @@
 name: rivium_trace_flutter_sdk
 description: "Flutter plugin for RiviumTrace error tracking with real native crash capture on iOS (PLCrashReporter) and Android (ApplicationExitInfo)."
-version: 0.2.0
+version: 0.2.1
 homepage: https://rivium.co/cloud/rivium-trace
 repository: https://github.com/Rivium-co/rivium-trace-flutter
 documentation: https://rivium.co/cloud/rivium-trace
@@ -17,6 +17,10 @@ dependencies:
   web: ^1.1.1
   crypto: ^3.0.6
   path_provider: ^2.1.0
+  # Wide ranges on purpose: 12.x/9.x still run on Dart 3.7+ and win32 5.x,
+  # 13.x/10.x need Dart 3.10+ and win32 6.x. Apps pinned to either side resolve.
+  device_info_plus: '>=11.5.0 <14.0.0'
+  package_info_plus: '>=8.3.0 <11.0.0'
 
 dev_dependencies:
   flutter_test:

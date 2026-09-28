@@ -1,3 +1,9 @@
+## 0.2.1
+
+* Errors and messages now include device, OS and app details (model, OS version, locale, time zone, app version and build). Turn off with `collectDeviceInfo: false`.
+* SDK version, Dart version and build mode are sent with each event.
+* Fix: the reported SDK version now matches the package version.
+
 ## 0.2.0
 
 * **Breaking — un-vendor: the plugin now depends on the published

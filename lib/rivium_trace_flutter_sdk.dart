@@ -12,6 +12,7 @@ import 'src/platform/platform_handler.dart';
 import 'src/platform/rivium_trace_native_plugin.dart';
 import 'src/constants/rivium_trace_constants.dart';
 import 'src/services/rivium_trace_logger.dart';
+import 'src/services/device_context_service.dart';
 // Log service is imported via export above
 
 export 'src/models/rivium_trace_error.dart';
@@ -98,6 +99,8 @@ class RiviumTrace {
         // After WidgetsFlutterBinding is up, initialize the native plugin
         // (installs PLCrashReporter on iOS, ApplicationExitInfo polling on
         // Android) and drain any crash report left by the previous session.
+        // The binding is up now, so the device/app lookups can run.
+        _instance!._startDeviceContext();
         if (!kIsWeb) {
           await RiviumTraceNativePlugin.init(_instance!._config);
           await _instance!._drainNativeCrashesFromPreviousSession();
@@ -140,6 +143,9 @@ class RiviumTrace {
     if (_config.captureUncaughtErrors) {
       _setupErrorHandling();
     }
+
+    // Collect device/app context once, in the background.
+    _startDeviceContext();
 
     // Initialize the native plugin and drain any previous-session crashes.
     if (!kIsWeb) {
@@ -205,6 +211,28 @@ class RiviumTrace {
     );
 
     RiviumTraceLogger.info('Initialized for ${_platformHandler.getPlatform()}');
+  }
+
+  void _startDeviceContext() {
+    try {
+      DeviceContextService.start(
+        collectDeviceInfo: _config.collectDeviceInfo,
+        platform: _platformHandler.getPlatform(),
+      );
+    } catch (e) {
+      RiviumTraceLogger.debug('Device context not started: $e');
+    }
+  }
+
+  /// [extra] plus the cached device / app / SDK context (bounded wait).
+  Future<Map<String, dynamic>> _withContext(Map<String, dynamic>? extra) async {
+    try {
+      final context = await DeviceContextService.snapshot();
+      return DeviceContextService.mergeInto(extra, context);
+    } catch (e) {
+      RiviumTraceLogger.debug('Device context unavailable: $e');
+      return <String, dynamic>{...?extra};
+    }
   }
 
   /// Drain native crash reports left by the previous session.
@@ -467,6 +495,8 @@ class RiviumTrace {
         }
       }
 
+      cleanExtra = await _withContext(cleanExtra);
+
       final payload = {
         'message': message,
         'level': level,
@@ -476,7 +506,7 @@ class RiviumTrace {
         'timestamp': DateTime.now().toIso8601String(),
         'user_id': _userId,
         if (breadcrumbs != null) 'breadcrumbs': breadcrumbs,
-        if (cleanExtra != null && cleanExtra.isNotEmpty) 'extra': cleanExtra,
+        if (cleanExtra.isNotEmpty) 'extra': cleanExtra,
         if (tags != null && tags.isNotEmpty) 'tags': tags,
       };
 
@@ -848,6 +878,19 @@ class RiviumTrace {
       _lastErrorTimes.clear();
       _lastErrorTimes.addAll(Map.fromEntries(sortedEntries.take(25)));
     }
+
+    // Attach device / app / SDK context (cached; waits at most 500 ms once).
+    error = RiviumTraceError(
+      message: error.message,
+      stackTrace: error.stackTrace,
+      platform: error.platform,
+      environment: error.environment,
+      release: error.release,
+      timestamp: error.timestamp,
+      extra: await _withContext(error.extra),
+      tags: error.tags,
+      url: error.url,
+    );
 
     try {
       final payload = error.toJson();

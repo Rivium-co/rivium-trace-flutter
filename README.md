@@ -30,7 +30,7 @@ Add this to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  rivium_trace_flutter_sdk: ^0.1.2
+  rivium_trace_flutter_sdk: ^0.2.1
 ```
 
 Run:
@@ -133,6 +133,7 @@ RiviumTraceConfig(
   enabled: true,                                    // Default: true
   debug: false,                                     // Default: false
   timeout: 30,                                      // Default: 30 seconds
+  collectDeviceInfo: true,                          // Default: true — see "Device & app context"
 )
 ```
 
@@ -236,6 +237,37 @@ The SDK automatically captures:
 - **User Agent** - Browser/device information (web only)
 - **URL** - Current page URL (web only)
 - **Custom Context** - Any additional data you provide
+- **Device & app context** - see below
+
+### Device & app context
+
+Collected **once** at init (cached; an error is never held up by more than
+500 ms waiting for it, and a missing plugin or failed lookup is simply left
+out) via `device_info_plus` and `package_info_plus`, and sent in each
+error's and message's `extra`:
+
+| Key | What |
+|-----|------|
+| `device_info.device_model` | `Pixel 8`, `iPhone 15 Pro` (iOS falls back to the hardware id) |
+| `device_info.device_manufacturer`, `device_brand` | Android: `Google` / `google` |
+| `device_info.machine`, `device_type` | iOS/macOS hardware id (`iPhone16,1`) and `iPhone` / `iPad` |
+| `device_info.os_name`, `os_version` | `Android 15`, `iOS 18.1`, `macOS 15.1.0`, … |
+| `device_info.sdk_int`, `supported_abis` | Android API level and CPU ABIs |
+| `device_info.total_memory_mb` | Total RAM |
+| `device_info.is_physical_device` | `false` on emulators / simulators |
+| `device_info.locale`, `timezone` | `en-US`, `CET (UTC+01:00)` |
+| `app_info.version`, `build_number`, `package_name`, `app_name` | From the app's pubspec / Info.plist / build.gradle |
+| `_sdk.sdk_version`, `dart_version`, `build_mode` | RiviumTrace SDK version, Dart version, `release` / `profile` / `debug` |
+
+Never collected: the device name, IDFV / advertising ids, Android ID,
+serial number, host or user name, or IP address. On **web** only the locale,
+time zone and `_sdk` are added (the browser user agent already describes the
+device). Turn the device and app parts off with
+`RiviumTraceConfig(collectDeviceInfo: false)` — `_sdk` is still sent.
+
+`device_info_plus` 12+ needs Android Gradle Plugin 8.12.1+ and 13+ needs
+iOS 13 — if your app is on an older toolchain, pin `device_info_plus: 11.5.0`
+in your app's `pubspec.yaml`; the SDK accepts 11.5 through 13.x.
 
 ## Best Practices
 

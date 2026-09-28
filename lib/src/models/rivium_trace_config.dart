@@ -39,6 +39,17 @@ class RiviumTraceConfig {
   /// Enable offline storage for errors when network is unavailable
   final bool enableOfflineStorage;
 
+  /// Attach device, OS and app context to errors and messages (default: true).
+  ///
+  /// Collected once at init via `device_info_plus` / `package_info_plus`:
+  /// device model and manufacturer, OS name and version, Android API level
+  /// and ABIs, total RAM, physical-vs-emulator, locale, time zone, and the
+  /// app's version, build number, package / bundle id and name. Never the
+  /// device name, advertising / vendor ids, Android ID, serial or IP.
+  /// Set to false to send none of it (the SDK version, Dart version and
+  /// build mode are still sent).
+  final bool collectDeviceInfo;
+
   /// Custom log handler to receive SDK logs
   ///
   /// Use this to forward logs to your own logging system or display them
@@ -68,6 +79,7 @@ class RiviumTraceConfig {
     this.maxBreadcrumbs = 20,
     this.sampleRate = 1.0,
     this.enableOfflineStorage = true,
+    this.collectDeviceInfo = true,
     this.logHandler,
   }) : apiUrl = apiUrl ?? RiviumTraceConstants.apiUrl;
 
@@ -89,6 +101,7 @@ class RiviumTraceConfig {
     int? maxBreadcrumbs,
     double? sampleRate,
     bool? enableOfflineStorage,
+    bool? collectDeviceInfo,
     RiviumTraceLogCallback? logHandler,
   }) {
     return RiviumTraceConfig(
@@ -104,6 +117,7 @@ class RiviumTraceConfig {
       maxBreadcrumbs: maxBreadcrumbs ?? this.maxBreadcrumbs,
       sampleRate: sampleRate ?? this.sampleRate,
       enableOfflineStorage: enableOfflineStorage ?? this.enableOfflineStorage,
+      collectDeviceInfo: collectDeviceInfo ?? this.collectDeviceInfo,
       logHandler: logHandler ?? this.logHandler,
     );
   }
