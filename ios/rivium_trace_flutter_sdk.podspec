@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'rivium_trace_flutter_sdk'
-  s.version          = '0.2.0'
+  s.version          = '0.2.2'
   s.summary          = 'RiviumTrace Flutter plugin with real native crash capture'
   s.description      = <<-DESC
 RiviumTrace error tracking and APM SDK for Flutter. Native iOS crashes

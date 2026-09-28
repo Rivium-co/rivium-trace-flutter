@@ -5,7 +5,7 @@ class RiviumTraceConstants {
 
   /// SDK version. Must equal `version:` in pubspec.yaml (a test checks it);
   /// sent as `_sdk.sdk_version` and in the `User-Agent` header.
-  static const String sdkVersion = '0.2.1';
+  static const String sdkVersion = '0.2.2';
 
   RiviumTraceConstants._(); // Private constructor to prevent instantiation
 }

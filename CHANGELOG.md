@@ -1,3 +1,7 @@
+## 0.2.2
+
+* Fix: Android builds failed with the latest `device_info_plus` / `package_info_plus` (the plugin now compiles against Android API 36).
+
 ## 0.2.1
 
 * Errors and messages now include device, OS and app details (model, OS version, locale, time zone, app version and build). Turn off with `collectDeviceInfo: false`.
