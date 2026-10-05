@@ -1,3 +1,8 @@
+## 0.2.3
+
+* Uses the native SDKs with working offline storage (Android 0.2.1, iOS 0.2.2): native errors that cannot be sent while the device is offline are kept and sent later.
+* Minimum Android version is API 19, which the native SDK already needed.
+
 ## 0.2.2
 
 * Fix: Android builds failed with the latest `device_info_plus` / `package_info_plus` (the plugin now compiles against Android API 36).

@@ -4,7 +4,7 @@
 // (src/main/kotlin/co/rivium/trace/sdk/flutter/).
 
 group 'co.rivium.trace.sdk.flutter'
-version '0.2.0'
+version '0.2.3'
 
 buildscript {
     ext.kotlin_version = '1.9.22'
@@ -54,9 +54,9 @@ android {
     }
 
     defaultConfig {
-        // Same floor as the standalone SDK — JVM crash handler runs on
-        // every API level; ApplicationExitInfo gates internally to API 30+.
-        minSdkVersion 16
+        // Same floor as the standalone SDK. ApplicationExitInfo gates
+        // internally to API 30+.
+        minSdkVersion 19
         targetSdkVersion 34
     }
 
@@ -85,5 +85,5 @@ android {
 dependencies {
     // Published RiviumTrace Android SDK. Transitively pulls androidx.core,
     // okhttp, gson, lifecycle, work, and protobuf-javalite.
-    implementation 'co.rivium.trace:rivium-trace-android-sdk:0.2.0'
+    implementation 'co.rivium.trace:rivium-trace-android-sdk:0.2.1'
 }

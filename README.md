@@ -30,7 +30,7 @@ Add this to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  rivium_trace_flutter_sdk: ^0.2.1
+  rivium_trace_flutter_sdk: ^0.2.3
 ```
 
 Run:
