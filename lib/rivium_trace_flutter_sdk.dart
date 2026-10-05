@@ -105,6 +105,14 @@ class RiviumTrace {
           await RiviumTraceNativePlugin.init(_instance!._config);
           await _instance!._drainNativeCrashesFromPreviousSession();
         }
+
+        // Offline storage needs the binding too (it asks the platform for a
+        // folder), so it is set up here, and errors kept from an earlier
+        // session are sent now.
+        if (_instance!._config.enableOfflineStorage && !kIsWeb) {
+          await OfflineStorageService.initialize();
+          unawaited(_instance!._sendStoredErrors());
+        }
       },
       (error, stackTrace) {
         // Catch async errors that aren't caught by Flutter's error handler
@@ -973,10 +981,18 @@ class RiviumTrace {
               )
               .timeout(Duration(seconds: _config.timeout));
 
-          if (response.statusCode >= 200 && response.statusCode < 300 ||
-              response.statusCode == 409) {
+          final status = response.statusCode;
+          // Sent, or refused for good (it would be refused again). Kept when
+          // the server asks to try later (408, 429) or has a problem (5xx).
+          final refused =
+              status >= 400 && status < 500 && status != 408 && status != 429;
+          if (status >= 200 && status < 300 || refused) {
             await OfflineStorageService.removeError(i);
-            RiviumTraceLogger.debug('Stored error sent successfully');
+            RiviumTraceLogger.debug(
+              refused
+                  ? 'Stored error refused by the server ($status), dropped'
+                  : 'Stored error sent successfully',
+            );
           }
         } catch (e) {
           // Network still unavailable, stop trying

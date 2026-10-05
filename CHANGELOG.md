@@ -1,3 +1,8 @@
+## 0.2.4
+
+* Fix: with `initWithZone()`, errors kept while offline are now sent on the next start. Before, they stayed on the device.
+* Stored errors the server refuses for good are dropped and no longer retried at every start.
+
 ## 0.2.3
 
 * Uses the native SDKs with working offline storage (Android 0.2.1, iOS 0.2.2): native errors that cannot be sent while the device is offline are kept and sent later.
