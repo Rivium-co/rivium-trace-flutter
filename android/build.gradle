@@ -4,7 +4,7 @@
 // (src/main/kotlin/co/rivium/trace/sdk/flutter/).
 
 group 'co.rivium.trace.sdk.flutter'
-version '0.2.4'
+version '0.2.5'
 
 buildscript {
     ext.kotlin_version = '1.9.22'
@@ -85,5 +85,5 @@ android {
 dependencies {
     // Published RiviumTrace Android SDK. Transitively pulls androidx.core,
     // okhttp, gson, lifecycle, work, and protobuf-javalite.
-    implementation 'co.rivium.trace:rivium-trace-android-sdk:0.2.1'
+    implementation 'co.rivium.trace:rivium-trace-android-sdk:0.2.3'
 }

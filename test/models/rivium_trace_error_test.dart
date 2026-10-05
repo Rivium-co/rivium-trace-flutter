@@ -130,10 +130,7 @@ void main() {
           platform: 'flutter_ios',
           environment: 'prod',
           timestamp: DateTime.now(),
-          extra: {
-            'breadcrumbs': breadcrumbs,
-            'other_key': 'other_value',
-          },
+          extra: {'breadcrumbs': breadcrumbs, 'other_key': 'other_value'},
         );
 
         final json = error.toJson();
@@ -149,10 +146,7 @@ void main() {
           platform: 'flutter_web',
           environment: 'prod',
           timestamp: DateTime.now(),
-          extra: {
-            'url': 'https://app.example.com/dashboard',
-            'other': 'data',
-          },
+          extra: {'url': 'https://app.example.com/dashboard', 'other': 'data'},
         );
 
         final json = error.toJson();
@@ -168,9 +162,7 @@ void main() {
           environment: 'prod',
           timestamp: DateTime.now(),
           url: 'https://main-url.com',
-          extra: {
-            'url': 'https://extra-url.com',
-          },
+          extra: {'url': 'https://extra-url.com'},
         );
 
         final json = error.toJson();
@@ -186,7 +178,7 @@ void main() {
           timestamp: DateTime.now(),
           extra: {
             'breadcrumbs': [
-              {'message': 'crumb'}
+              {'message': 'crumb'},
             ],
           },
         );
@@ -210,6 +202,35 @@ void main() {
         error.toString(),
         'RiviumTraceError(message: Test, platform: flutter_ios, environment: production)',
       );
+    });
+  });
+
+  group('event id', () {
+    RiviumTraceError make() => RiviumTraceError(
+      message: 'boom',
+      stackTrace: 'stack',
+      platform: 'flutter',
+      environment: 'production',
+      timestamp: DateTime.utc(2026, 1, 1),
+    );
+
+    test('every error has its own id, sent as event_id', () {
+      final first = make();
+      final second = make();
+
+      expect(first.eventId, isNot(second.eventId));
+      expect(first.toJson()['event_id'], first.eventId);
+      expect(
+        RegExp(
+          r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
+        ).hasMatch(first.eventId),
+        isTrue,
+      );
+    });
+
+    test('the same error keeps its id every time it is serialised', () {
+      final error = make();
+      expect(error.toJson()['event_id'], error.toJson()['event_id']);
     });
   });
 }

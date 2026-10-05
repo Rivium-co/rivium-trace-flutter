@@ -1,3 +1,9 @@
+## 0.2.5
+
+* Uses native SDKs Android 0.2.3 and iOS 0.2.4: native crashes on the Android main thread are reported, app launch on iOS never waits for a crash report to be sent, and crash reports are no longer lost when the server or network fails.
+* Android: one hang is one ANR report, and no false ANR reports after a crash.
+* An error that is sent again (for example a copy stored while offline) is counted once: every error carries an `event_id`.
+
 ## 0.2.4
 
 * Fix: with `initWithZone()`, errors kept while offline are now sent on the next start. Before, they stayed on the device.
