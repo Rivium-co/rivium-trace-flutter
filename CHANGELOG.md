@@ -1,3 +1,8 @@
+## 0.2.6
+
+* Fix: `initWithZone()` no longer prints "Failed to initialize offline storage: Binding has not yet been initialized" at start. Offline storage now sets itself up once the app has started.
+* Fix: errors stored offline at the same moment are all kept (before, one could be lost).
+
 ## 0.2.5
 
 * Uses native SDKs Android 0.2.3 and iOS 0.2.4: native crashes on the Android main thread are reported, app launch on iOS never waits for a crash report to be sent, and crash reports are no longer lost when the server or network fails.

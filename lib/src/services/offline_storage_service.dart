@@ -13,11 +13,36 @@ class OfflineStorageService {
 
   static File? _file;
   static bool _isInitialized = false;
+  static Future<void>? _initializing;
 
-  /// Initialize the offline storage
-  static Future<void> initialize() async {
-    if (_isInitialized || kIsWeb) return;
+  /// File changes run one after another: two errors stored at once would otherwise both read the same list and the
+  /// second write would drop the first.
+  static Future<void> _tail = Future.value();
 
+  static Future<T> _serial<T>(Future<T> Function() change) {
+    final run = _tail.then((_) => change());
+    _tail = run.then((_) {}, onError: (_) {});
+    return run;
+  }
+
+  /// Forgets the storage file (tests).
+  @visibleForTesting
+  static void resetForTesting() {
+    _file = null;
+    _isInitialized = false;
+    _initializing = null;
+    _tail = Future.value();
+  }
+
+  /// Initialize the offline storage. Needs the Flutter binding (it asks the platform for the documents folder).
+  /// Callers at the same time share one attempt; after a failed attempt the next call tries again. Every other
+  /// method calls this first, so storage sets itself up on first use.
+  static Future<void> initialize() {
+    if (_isInitialized || kIsWeb) return Future.value();
+    return _initializing ??= _open().whenComplete(() => _initializing = null);
+  }
+
+  static Future<void> _open() async {
     try {
       final directory = await getApplicationDocumentsDirectory();
       _file = File('${directory.path}/$_fileName');
@@ -29,25 +54,29 @@ class OfflineStorageService {
 
   /// Store an error for later sending
   static Future<void> storeError(RiviumTraceError error) async {
+    await initialize();
     if (!_isInitialized || _file == null || kIsWeb) return;
 
-    try {
-      final errors = await _readErrors();
-      errors.add(error.toJson());
+    await _serial(() async {
+      try {
+        final errors = await _readErrors();
+        errors.add(error.toJson());
 
-      // Keep only the most recent errors
-      if (errors.length > _maxStoredErrors) {
-        errors.removeRange(0, errors.length - _maxStoredErrors);
+        // Keep only the most recent errors
+        if (errors.length > _maxStoredErrors) {
+          errors.removeRange(0, errors.length - _maxStoredErrors);
+        }
+
+        await _file!.writeAsString(jsonEncode(errors));
+      } catch (e) {
+        debugPrint('RiviumTrace: Failed to store offline error: $e');
       }
-
-      await _file!.writeAsString(jsonEncode(errors));
-    } catch (e) {
-      debugPrint('RiviumTrace: Failed to store offline error: $e');
-    }
+    });
   }
 
   /// Get all stored errors
   static Future<List<Map<String, dynamic>>> getStoredErrors() async {
+    await initialize();
     if (!_isInitialized || _file == null || kIsWeb) return [];
     return await _readErrors();
   }
@@ -56,28 +85,32 @@ class OfflineStorageService {
   static Future<void> clearStoredErrors() async {
     if (!_isInitialized || _file == null || kIsWeb) return;
 
-    try {
-      if (await _file!.exists()) {
-        await _file!.writeAsString('[]');
+    await _serial(() async {
+      try {
+        if (await _file!.exists()) {
+          await _file!.writeAsString('[]');
+        }
+      } catch (e) {
+        debugPrint('RiviumTrace: Failed to clear offline errors: $e');
       }
-    } catch (e) {
-      debugPrint('RiviumTrace: Failed to clear offline errors: $e');
-    }
+    });
   }
 
   /// Remove a specific error after it's been sent
   static Future<void> removeError(int index) async {
     if (!_isInitialized || _file == null || kIsWeb) return;
 
-    try {
-      final errors = await _readErrors();
-      if (index >= 0 && index < errors.length) {
-        errors.removeAt(index);
-        await _file!.writeAsString(jsonEncode(errors));
+    await _serial(() async {
+      try {
+        final errors = await _readErrors();
+        if (index >= 0 && index < errors.length) {
+          errors.removeAt(index);
+          await _file!.writeAsString(jsonEncode(errors));
+        }
+      } catch (e) {
+        debugPrint('RiviumTrace: Failed to remove offline error: $e');
       }
-    } catch (e) {
-      debugPrint('RiviumTrace: Failed to remove offline error: $e');
-    }
+    });
   }
 
   /// Check if there are stored errors
