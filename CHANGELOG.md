@@ -54,8 +54,7 @@
   "native crash" with no stack trace. It was the source of the
   "Native crash - No Dart stack trace available" reports flooding
   customer dashboards. It is deleted along with its public export.
-  If your app imported `CrashDetector` directly (the previous Sareban
-  workaround), remove those calls.
+  If your app imported `CrashDetector` directly, remove those calls.
 * The native iOS and Android RiviumTrace SDK sources are vendored
   inside this plugin for the current release so the plugin can be
   consumed before the standalone SDKs are published. A follow-up
