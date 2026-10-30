@@ -1,3 +1,7 @@
+## 0.2.8
+
+* iOS: Swift Package Manager support. Flutter apps with Swift Package Manager on (the default in current Flutter) get the native iOS SDK through it; apps on CocoaPods work as before.
+
 ## 0.2.7
 
 * Uses native SDKs Android 0.2.4 and iOS 0.2.5: a native abort on Android is reported once (before, it could also arrive a second time as a JVM crash), and one hang on iOS is one ANR report (before, one was sent every few seconds while the app stayed frozen).

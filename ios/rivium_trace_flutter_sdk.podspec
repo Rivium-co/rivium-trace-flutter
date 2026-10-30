@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'rivium_trace_flutter_sdk'
-  s.version          = '0.2.7'
+  s.version          = '0.2.8'
   s.summary          = 'RiviumTrace Flutter plugin with real native crash capture'
   s.description      = <<-DESC
 RiviumTrace error tracking and APM SDK for Flutter. Native iOS crashes
@@ -21,7 +21,7 @@ bridge from Dart to the native SDK.
 
   # Flutter plugin bridge only. The native crash reporter + all other
   # SDK classes come from the standalone RiviumTrace pod below.
-  s.source_files = 'Classes/**/*'
+  s.source_files = 'rivium_trace_flutter_sdk/Sources/rivium_trace_flutter_sdk/**/*.swift'
   s.public_header_files = 'Classes/**/*.h'
 
   s.dependency 'Flutter'
